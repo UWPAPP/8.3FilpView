@@ -8,6 +8,7 @@
 	var activation = Windows.ApplicationModel.Activation;
 	var isFirstActivation = true;
 
+
 	app.onactivated = function (args) {
 		if (args.detail.kind === activation.ActivationKind.voiceCommand) {
 			// TODO: Handle relevant ActivationKinds. For example, if your app can be started by voice commands,
@@ -56,44 +57,42 @@
 		// If you need to complete an asynchronous operation before your application is suspended, call args.setPromise().
 	};
 
+	app.onloaded = function (agrs) {
+
+	}
+
 	app.start();
 
 
 
+    //声明数据和filpView
 	var myTOCData;
 	var myFlipView;
 
-    // initialize()
-    //
-    //      Purpose:
-    //          To build the table of contents (TOC) we want to walk through
-    //          the items in the dataSource and create links for them.  To
-    //          simplify the process, the first item in the data source will
-    //          duplicate the remaining items.  This makes it simple to
-    //          constuct the TOC as well as template the remaining items.
-	function initialize() {
-	    myFlipView = document.getElementById("interactiveContent_FlipView").winControl;
+    //这个方法被DOMContentLoaded触发
+	function initializea() {
+	}
 
-	    // Attach Click Event Handlers to determine which item to navigate to.
+    //这个方法由WinJS.UI.processAll().done(initialize) 触发
+	function initializeb() {
+	    myFlipView = document.querySelector(".flipView").winControl;
 	    myFlipView.addEventListener("click", clickHandler, false);
-
-	    // Copy the data source and insert it as the first item in.
 	    var contents = { type: "contentsArray", contents: DefaultData.array };
+        //将数组复制一份
 	    myTOCData = DefaultData.array.slice(0);
+        //第0个位置插入contents
 	    myTOCData.splice(0, 0, contents);
-
-	    // Update Scenario 3 FlipView to use the custom template and the Table of
-	    // contents data source.
+        //指定数据模板
 	    myFlipView.itemTemplate = mytemplate;
+        //绑定数据
 	    myFlipView.itemDataSource = new WinJS.Binding.List(myTOCData).dataSource;
 	}
 
-    //  mytemplate
-    //
-    //      Purpose: This function simply picks whether the Item or Table of
-    //               Contents needs to be rendered and calls the appropriate
-    //               function.
+	
+
+    //获取数据模板的方法(这里因为flipView的模板不一样，所以需要用代码区分来写)
 	function mytemplate(itemPromise) {
+        //这里currentItem是数据源中的一条条数据
 	    return itemPromise.then(function (currentItem) {
 	        if (currentItem.data.type === "item") {
 	            return renderItem(currentItem.data);
@@ -104,12 +103,8 @@
 	    });
 	}
 
-    //  renderTableOfContents()
-    //
-    //      Purpose: This function is responsible for walking through an array
-    //               of titles and constructing the table of contents.
+    //创建flipView首页的模板
 	function renderTableOfContents(dataObject, index) {
-
 	    // Step 1) Create an element to hold the table of contents.
 	    var TableOfContents = document.createElement("div");
 	    TableOfContents.className = "TableOfContents";
@@ -133,6 +128,7 @@
 	    return TableOfContents;
 	}
 
+    //flipView首页的模板中的若干条数据模板
 	function renderTOCItem(itemName, itemNumber) {
 
 	    // Create the container that will hold all of the sub-elements
@@ -158,23 +154,8 @@
 	    return itemContainer;
 	}
 
-    // renderItem()
-    //
-    //      Purpose: This function takes the raw data and constructs the
-    //               item that is used in the FlipView.  It creates items of
-    //               the following form:
-    //
-    //                  <div class="Scenario3_ItemTemplate">
-    //                      <div class="overlaidItemTemplate">
-    //                          <img class="image" data-win-bind="src: picture" data-win-bind="alt: title" />
-    //                          <div class="overlay">
-    //                              <div class="ItemTitle" data-win-bind="textContent: title"></div>
-    //                          </div>
-    //                      </div>
-    //                  </div>
+    //创建flipView显示图片的模板
 	function renderItem(dataObject) {
-
-	    // Create the Item Title div
 	    var itemTitle = document.createElement("h2");
 	    itemTitle.className = "overlayElement ItemTitle";
 	    itemTitle.textContent = dataObject.title;
@@ -205,30 +186,22 @@
 	    return overlaidItemTemplate;
 	}
 
-    // clickHandler
-    //
-    //      Purpose: This event handler is responsible for trigger navigation
-    //               to the item that was clicked on in the table of contents
-    //               or navigating back to the table of contents when the link
-    //               is clicked on a item.
+    
+    //flipView的点击事件(点击flipView的任何地方都会响应这个事件)
 	function clickHandler(evt) {
-
-	    // First check if the source of the event is an item in the table of
-	    // contents
 	    if (WinJS.Utilities.hasClass(evt.target, "itemContainer")) {
 	        myFlipView.currentPage = parseInt(evt.target.value);
-	    } else if (WinJS.Utilities.hasClass(evt.target, "TOCItem")) {
-	        // Since we are navigating to an item, we need to retrieve the
-	        // number of the page and set the currentPage on the FlipView.
+	    }
+	    //如果事件的目标是TOCItem
+	    else if (WinJS.Utilities.hasClass(evt.target, "TOCItem")) {
 	        myFlipView.currentPage = parseInt(evt.target.parentNode.value);
-	    } else if (WinJS.Utilities.hasClass(evt.target, "returnTOC")) {
-
-	        // Since we know that we are returning to the table of contents,
-	        // simply set the currentPage to trigger the navigation.
+	    }
+	    else if (WinJS.Utilities.hasClass(evt.target, "returnTOC")) {
 	        myFlipView.currentPage = 0;
 	    }
 	}
 
+    //数据源
 	var array = [
         { type: "item", title: "Rainier", picture: "/pages/flipview/images/Rainier.jpg" },
         { type: "item", title: "Cliff", picture: "/pages/flipview/images/Cliff.jpg" },
@@ -236,15 +209,12 @@
         { type: "item", title: "Sunset", picture: "/pages/flipview/images/Sunset.jpg" },
         { type: "item", title: "Valley", picture: "/pages/flipview/images/Valley.jpg" }
 	];
-	var bindingList = new WinJS.Binding.List(array);
 
 	WinJS.Namespace.define("DefaultData", {
-	    bindingList: bindingList,
 	    array: array
 	});
 
-	WinJS.UI.processAll().done(initialize);
+	document.addEventListener("DOMContentLoaded", initializea(), false);
 
-
-
+	WinJS.UI.processAll().done(initializeb);
 })();
